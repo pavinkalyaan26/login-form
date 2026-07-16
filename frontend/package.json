@@ -2,17 +2,21 @@
   "name": "login-app-frontend",
   "private": true,
   "version": "1.0.0",
-   "scripts": {
-    "prebuild": "chmod +x node_modules/.bin/vite",
-    "build": "vite build"
+  "type": "module",
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^18.x",
-    "react-dom": "^18.x"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "vite": "^5.4.0",
-    "@vitejs/plugin-react": "^4.x"
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.10"
   }
- 
 }
