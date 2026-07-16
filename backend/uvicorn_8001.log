@@ -1,0 +1,13 @@
+INFO:     Will watch for changes in these directories: ['d:\\NURA_LABS\\login-form\\backend']
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+INFO:     Started reloader process [33520] using StatReload
+INFO:     Started server process [32248]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+(trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "d:\NURA_LABS\login-form\.venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+INFO:     127.0.0.1:52014 - "POST /auth/register HTTP/1.1" 201 Created
