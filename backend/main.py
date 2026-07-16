@@ -27,9 +27,17 @@ initialize_db()
 
 @app.on_event("startup")
 async def on_startup():
-    # Initialize external services
-    await init_mongo(app)
-    await init_redis(app)
+    try:
+        await init_mongo(app)
+        print("MongoDB connected")
+    except Exception as e:
+        print(f"MongoDB connection failed: {e}")
+
+    try:
+        await init_redis(app)
+        print("Redis connected")
+    except Exception as e:
+        print(f"Redis connection failed: {e}")
 
 
 @app.on_event("shutdown")
