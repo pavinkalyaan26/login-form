@@ -1,0 +1,12 @@
+Task 1 - 16/07/2026
+To create a login page with React.js as front end and Python FastAPI as backend
+
+front end - npm run dev
+back end - python -m uvicorn main:app --reload  
+
+GITHUB Link - link
+
+IP's used in MongoDB Atlas 
+ current IP     - 49.207.186.189/32 (office)  both 1 and 2 are completely optional
+ default IPV4   - 172.31.98.169/32 
+common default - 0.0.0.0 (this one is enough at any case since it is universal)
