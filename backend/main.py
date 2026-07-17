@@ -15,7 +15,7 @@ app = FastAPI(title="Login App API", version="1.0.0")
 # Allow the React frontend hosted on Vite to talk to this backend.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://login-form-pf76-nine.vercel.app"],
+    allow_origins=["http://localhost:5173", "https://login-form-pf76-git-main-pavin-kalyaans-projects.vercel.app/login"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
