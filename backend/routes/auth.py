@@ -1,41 +1,115 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from datetime import datetime
 
-from auth import create_access_token, get_password_hash, verify_password
-from database import get_db
-from models import User
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+
+from auth import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    create_access_token,
+    get_password_hash,
+    verify_password,
+)
+from mongo import get_users_collection
+from redis_client import get_redis
 from schemas import Token, UserCreate, UserLogin
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def find_user_by_email(db: Session, email: str) -> User | None:
-    return db.query(User).filter(User.email == email).first()
-
-
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
-def register(user: UserCreate, db: Session = Depends(get_db)):
-    """Create a new account and return a JWT token."""
-    existing_user = find_user_by_email(db, user.email)
+async def register(
+    user: UserCreate,
+    request: Request,
+    users=Depends(get_users_collection),
+):
+    existing_user = await users.find_one({"email": user.email})
+
     if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered",
+        )
 
     hashed_password = get_password_hash(user.password)
-    new_user = User(name=user.name, email=user.email, password=hashed_password)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
 
-    token = create_access_token({"sub": new_user.email})
-    return {"access_token": token, "token_type": "bearer"}
-    
+    new_user = {
+        "name": user.name,
+        "email": user.email,
+        "password": hashed_password,
+        "age": None,
+        "gender": None,
+        "address": None,
+        "interests": None,
+        "bio": None,
+        "created_at": datetime.utcnow(),
+    }
+
+    result = await users.insert_one(new_user)
+
+    user_id = str(result.inserted_id)
+
+    token = create_access_token(
+        {
+            "sub": user_id
+        }
+    )
+
+    redis = get_redis(request)
+
+    if redis is not None:
+        await redis.set(
+            f"session:{user_id}",
+            token,
+            ex=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        )
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+    }
+
 
 @router.post("/login", response_model=Token)
-def login(user: UserLogin, db: Session = Depends(get_db)):
-    """Check user credentials and return a JWT token."""
-    saved_user = find_user_by_email(db, user.email)
-    if not saved_user or not verify_password(user.password, saved_user.password):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+async def login(
+    user: UserLogin,
+    request: Request,
+    users=Depends(get_users_collection),
+):
+    saved_user = await users.find_one(
+        {
+            "email": user.email
+        }
+    )
 
-    token = create_access_token({"sub": saved_user.email})
-    return {"access_token": token, "token_type": "bearer"}
+    if (
+        saved_user is None
+        or not verify_password(
+            user.password,
+            saved_user["password"],
+        )
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password",
+        )
+
+    user_id = str(saved_user["_id"])
+
+    token = create_access_token(
+        {
+            "sub": user_id
+        }
+    )
+
+    redis = get_redis(request)
+
+    if redis is not None:
+        await redis.set(
+            f"session:{user_id}",
+            token,
+            ex=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        )
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+    }
